@@ -14,9 +14,20 @@ Affine Structure from Motion (SfM) is a computer vision technique that reconstru
 
 ## Example Results
 
-![3D Point Cloud](images/point_cloud.png)
+### 3D Reconstruction
 
-The algorithm reconstructs the 3D structure of a scene from 2D point correspondences tracked across multiple frames.
+![3D Point Cloud and Camera Path](results/point_cloud.png)
+
+The algorithm reconstructs the 3D structure of a scene (red points) from 2D point correspondences tracked across multiple frames. The blue line shows the camera path, with green triangle marking the start position and black circle marking the end position.
+
+### Camera Motion Analysis
+
+![Camera Position Coordinates](results/camera_position.png)
+
+The individual X, Y, and Z coordinates of the camera position over time show how the camera moves throughout the sequence:
+- X position increases linearly (camera moving right)
+- Y position decreases linearly (camera moving down)
+- Z position follows a parabolic trajectory (camera first moving away then closer)
 
 ## Usage
 
@@ -50,6 +61,33 @@ plot_cam_pos(A)  # Plot camera positions
 - Matplotlib
 - SciPy (for loading .mat files)
 
+## Setup with Conda
+
+```bash
+# Create a new conda environment named "sfm" with Python 3.10
+conda create -n sfm python=3.10
+
+# Activate the environment
+conda activate sfm
+
+# Install required packages
+conda install -c conda-forge numpy scipy matplotlib jupyter
+
+# Register the environment with Jupyter
+python -m ipykernel install --user --name=sfm --display-name="Python (SfM)"
+```
+
+If the kernel doesn't appear in Jupyter, try:
+```bash
+# Make sure ipykernel is installed
+conda install -c conda-forge ipykernel
+
+# Register the kernel again
+python -m ipykernel install --user --name=sfm --display-name="Python (SfM)"
+
+# Restart Jupyter
+```
+
 ## Implementation Details
 
 The implementation follows these key steps:
@@ -58,6 +96,65 @@ The implementation follows these key steps:
 2. **Matrix Factorization**: Uses SVD to decompose the measurement matrix and enforces rank 3 constraint
 3. **Orthographic Constraint Application**: Solves for the appropriate transformation matrix
 4. **Structure Reconstruction**: Recovers the 3D coordinates and camera motion
+
+## Visualization Code Examples
+
+### 3D Point Cloud and Camera Path
+
+```python
+# Get camera positions
+cam_pos = get_cam_pos(A)
+
+# Plot 3D points and camera path
+fig = plt.figure(figsize=(12, 10))
+ax = fig.add_subplot(projection='3d')
+
+# Plot 3D points
+xs, ys, zs = X
+ax.scatter(xs, ys, zs, color='r', s=10, alpha=0.5, label='3D Points')
+
+# Plot camera path
+ax.plot(cam_pos[:, 0], cam_pos[:, 1], cam_pos[:, 2], 'b-', linewidth=2, label='Camera Path')
+ax.scatter(cam_pos[:, 0], cam_pos[:, 1], cam_pos[:, 2], color='blue', s=30)
+
+# Mark start and end of camera path
+ax.scatter(cam_pos[0, 0], cam_pos[0, 1], cam_pos[0, 2], color='green', s=100, marker='^', label='Start')
+ax.scatter(cam_pos[-1, 0], cam_pos[-1, 1], cam_pos[-1, 2], color='black', s=100, marker='o', label='End')
+
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('Z')
+ax.set_title('3D Point Cloud and Camera Path')
+ax.legend()
+```
+
+### Camera Position Plots
+
+```python
+# Plot camera positions over time
+cam_pos = get_cam_pos(A)
+plt.figure(figsize=(12, 9))
+
+plt.subplot(3, 1, 1)
+plt.plot(cam_pos[:, 0])
+plt.xlabel('Frame')
+plt.ylabel('X Position')
+plt.title('Camera Position (X)')
+
+plt.subplot(3, 1, 2)
+plt.plot(cam_pos[:, 1])
+plt.xlabel('Frame')
+plt.ylabel('Y Position')
+plt.title('Camera Position (Y)')
+
+plt.subplot(3, 1, 3)
+plt.plot(cam_pos[:, 2])
+plt.xlabel('Frame')
+plt.ylabel('Z Position')
+plt.title('Camera Position (Z)')
+
+plt.tight_layout()
+```
 
 ## License
 
